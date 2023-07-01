@@ -1,0 +1,39 @@
+q-dhcp-client - dhcp client with just 28K size
+
+Compilation:
+1)Edit Makefile to satisfy your requirements and tools
+2)Execute make
+Install in any place by moving/copying ./q-dhcp-client
+
+Usage options:
+-d - show debug info
+-i <interface name> - specify interface to work with
+--dry - do not edit interface ip, mask and routes
+--arp-check - perform arp check after receiving DHCP_OFFER
+send DHCP_DECLINE if dhcp client receives ARP_REPLY
+--release - send DHCP_RELEASE to free current ip
+
+Return values:
+0 - OK
+-1 - Internal error
+-2 - IP already occupied or got DHCP_NAK
+Without -d prints lease time in seconds
+So you can do LEASE_TIME=$(q-dhcp-client ...)
+And use it to set cron job or any timer
+
+Examples:
+#Get ip addr, perform arp check
+#Set ip addr, net mask and default route for device eth0 if ip is free
+q-dhcp-client -i eth0 --arp-check
+
+#Get ip and set ip, mask and route
+q-dhcp-client -i eth0
+
+#Send DHCP_RELEASE and delete ip addr from device
+q-dhcp-client -i eth0 --release
+
+#Get ip(without setting it in device) and print debug info
+q-dhcp-client -i eth0 --dry -d
+
+
+I use it for my LFS build with runit

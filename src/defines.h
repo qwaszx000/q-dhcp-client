@@ -1,0 +1,48 @@
+#ifndef DEFINES
+#define DEFINES
+
+/*Client settings*/
+#define SERVER_UDP_PORT 67
+#define CLIENT_UDP_PORT 68
+
+#define MAX_DHCP_RECV_SIZE 576
+
+
+#define IP_ADDR_LEN 4
+#define BROADCAST_ADDR 0xffffffff
+
+/*DHCP*/
+#define BOOTREQUEST 1
+#define BOOTREPLY 2
+
+#define HTYPE_ETH 1
+#define HWADDR_LEN 6
+
+#define BROADCAST_FLAG 1 << 15
+#define DHCP_MAGIC_COOKIE 0x63825363
+
+#define OPTION_PAD 0
+#define OPTION_SUBNETMASK 1
+#define OPTION_ROUTERS 3
+#define OPTION_DNS 6
+#define OPTION_REQUESTED_IP 50
+#define OPTION_LEASE_TIME 51
+#define OPTION_SERVER_IP 54
+#define OPTION_MSG_TYPE 53 
+#define OPTION_MSG_SIZEMAX 57
+#define OPTION_CLIENTID 61
+#define OPTION_END 255
+
+#define MSGTYPE_DISCOVER 1
+#define MSGTYPE_OFFER 2
+#define MSGTYPE_REQUEST 3
+#define MSGTYPE_DECLINE 4
+#define MSGTYPE_ACK 5
+#define MSGTYPE_NAK 6
+#define MSGTYPE_RELEASE 7
+
+/*ARP*/
+#define ARP_FREE_IP 0
+#define ARP_OCCUPIED_IP 1
+
+#endif
