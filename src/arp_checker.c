@@ -13,29 +13,27 @@
 
 #define PTYPE_IPV4 0x800
 
-extern ARGS_OPTIONS options;
-extern char ip[IP_ADDR_LEN];
+static int create_arp_socket(char *hwaddr, ARGS_OPTIONS *options)
+{
+	int s;
+	struct ifreq req;
+	int tmp;
+	struct sockaddr_ll bind_ll;
+	struct timeval recv_timeout;
 
-static RAW_ARP arp;
-static int tmp;
-static int s;
-
-static int create_arp_socket(char *hwaddr){
 	s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
 	if(-1 == s){
 		perror("socket error");
 		return -1;
 	}
 
-	struct ifreq req;
-	memcpy(req.ifr_name, options.interface_name, HWADDR_LEN);
+	memcpy(req.ifr_name, options->interface_name, HWADDR_LEN);
 	tmp = ioctl(s, SIOCGIFINDEX, &req);
 	if(-1 == tmp){
 		perror("ioctl get ifindex error");
 		return -1;
 	}
 	
-	struct sockaddr_ll bind_ll;
 	bind_ll.sll_family = AF_PACKET;
 	bind_ll.sll_protocol = htons(ETH_P_ARP);
 	bind_ll.sll_ifindex = req.ifr_ifindex;
@@ -50,7 +48,6 @@ static int create_arp_socket(char *hwaddr){
 		return -1;
 	}
 
-	struct timeval recv_timeout;
 	recv_timeout.tv_sec = 1;
 	recv_timeout.tv_usec = 0;
 	tmp = setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,
@@ -59,30 +56,41 @@ static int create_arp_socket(char *hwaddr){
 		perror("setsockopt recv timeout setting error");
 		return -1;
 	}
+
+	return s;
 }
 
-static void prep_arp_req(char *src_hwaddr){
-	memset(&arp, 0, sizeof(arp));
-	memset(arp.dst_hwaddr, 0xff, HWADDR_LEN);
-	memcpy(arp.src_hwaddr, src_hwaddr, HWADDR_LEN);
-	arp.ether_type = htons(ETH_P_ARP);
-	arp.htype = htons(ARPHRD_ETHER);
-	arp.ptype = htons(PTYPE_IPV4);
-	arp.hlen = htons(HWADDR_LEN);
-	arp.plen = htons(IP_ADDR_LEN);
-	arp.op = htons(ARPOP_REQUEST);
-	memcpy(arp.sha, src_hwaddr, HWADDR_LEN);
-	memcpy(arp.tpa, ip, IP_ADDR_LEN);
-	//*(uint32_t*)&arp.tpa = inet_addr("192.168.0.1"); /*TEST PURPOSE*/
+static void prep_arp_req(RAW_ARP *arp, char *src_hwaddr, DHCP_RESULT *dhcp_res){
+	memset(arp, 0, sizeof(*arp));
+	memset(arp->dst_hwaddr, 0xff, HWADDR_LEN);
+	memcpy(arp->src_hwaddr, src_hwaddr, HWADDR_LEN);
+	arp->ether_type = htons(ETH_P_ARP);
+	arp->htype = htons(ARPHRD_ETHER);
+	arp->ptype = htons(PTYPE_IPV4);
+	arp->hlen = htons(HWADDR_LEN);
+	arp->plen = htons(IP_ADDR_LEN);
+	arp->op = htons(ARPOP_REQUEST);
+	memcpy(arp->sha, src_hwaddr, HWADDR_LEN);
+
+	#ifdef ARP_ROUTER
+	memcpy(arp->tpa, dhcp_res->router_ip, IP_ADDR_LEN);
+	#else
+	memcpy(arp->tpa, dhcp_res->ip, IP_ADDR_LEN);
+	#endif
 }
 
-int check_arp(char *src_hwaddr){
-	if(-1 == create_arp_socket(src_hwaddr)){
+int check_arp(char *src_hwaddr, ARGS_OPTIONS *options, DHCP_RESULT *dhcp_res)
+{
+	RAW_ARP arp;
+	int tmp, s;
+
+	s = create_arp_socket(src_hwaddr, options);
+	if(-1 == s){
 		printf("ARP check: socket creation error\n");
 		return -1;
 	}
 
-	prep_arp_req(src_hwaddr);
+	prep_arp_req(&arp, src_hwaddr, dhcp_res);
 
 	tmp = send(s, &arp, sizeof(arp), 0);
 	if(-1 == tmp){
@@ -107,4 +115,5 @@ int check_arp(char *src_hwaddr){
 		close(s);
 		return ARP_OCCUPIED_IP;
 	}
+	return -1;
 }

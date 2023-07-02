@@ -7,6 +7,9 @@
 
 #define MAX_DHCP_RECV_SIZE 576
 
+#ifndef DEBUG_DIR_PATH
+#define DEBUG_DIR_PATH "./"
+#endif
 
 #define IP_ADDR_LEN 4
 #define BROADCAST_ADDR 0xffffffff

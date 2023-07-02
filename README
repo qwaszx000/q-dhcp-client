@@ -1,8 +1,14 @@
-q-dhcp-client - dhcp client with just 28K size
+q-dhcp-client
 
 Compilation:
+DEBUG_DIR_PATH - path to dir where .bin files will be created in -d mode
+ARP_ROUTER - added solely for test purpose, it will force client to do ARP request not to requested ip, but to ip of router
+This will result in receiving IP_OCCUPIER
+
+Installing:
 1)Edit Makefile to satisfy your requirements and tools
-2)Execute make
+2)Execute `make`
+3)If you want - you can do `make check`, but read warning
 Install in any place by moving/copying ./q-dhcp-client
 
 Usage options:
@@ -12,14 +18,13 @@ Usage options:
 --arp-check - perform arp check after receiving DHCP_OFFER
 send DHCP_DECLINE if dhcp client receives ARP_REPLY
 --release - send DHCP_RELEASE to free current ip
+--no-debug-files - do not create .bin debug files when -d option used
 
-Return values:
+Return codes:
 0 - OK
 -1 - Internal error
 -2 - IP already occupied or got DHCP_NAK
-Without -d prints lease time in seconds
-So you can do LEASE_TIME=$(q-dhcp-client ...)
-And use it to set cron job or any timer
+Always prints IP:NETMASK:GATEWAY IP:LEASE TIME(s), so you can parse it with `cut`
 
 Examples:
 #Get ip addr, perform arp check
